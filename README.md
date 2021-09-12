@@ -25,3 +25,8 @@ CircuitPython files for my highland terrarium sensors
 **Not implemented:**
 - Alerts for multiple different water levels / report % capacity
 - Logging values to a database
+- Led indicator when taking readings
+
+## TODO:
+- SHT4x sensor file
+- install/setup bash script
