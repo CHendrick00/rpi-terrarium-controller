@@ -7,7 +7,7 @@ from discord_webhook import DiscordWebhook
 #ATTN: Set custom user values below
 whurl = 'your-url-here' #url of your discord webhook
 msg = 'your-message-here' #contents of message sent
-sample = 30 #number of readings to average for reported value
+sample = 30 #number of readings used to generate reported aggregate value
 interval = 10 #time between full readings (minutes)
 dist = 5 #distance to refill level (inches)
 threshold = 2 #distance above refill level when tank is considered filled (inches) (set this somewhere between the refill level and completely filled)
