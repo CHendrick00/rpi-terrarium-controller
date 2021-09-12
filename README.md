@@ -7,7 +7,10 @@ CircuitPython files for my highland terrarium sensors
 
 **Hardware:** Adafruit HC-SR04 or RCWL-1601 sensor
 
-**Prerequisites:** Raspberry Pi with CircuitPython and HCSR library installed, discord-webhook installed via pip3
+**Prerequisites:** 
+- Raspberry Pi with CircuitPython and HCSR library installed
+- discord-webhook library installed via pip3
+- Discord server with webhook
 
 **Features:** 
 - Discord alert with custom message when water level reaches user-specified refill level
