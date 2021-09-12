@@ -1,6 +1,8 @@
 # rpi-terrarium-controller
 CircuitPython files for my highland terrarium sensors
 
+[Pi Header Pinout Diagram](https://i.stack.imgur.com/JtpG7.png)
+
 ## HcsrHumidifierTemplate.py
 
 **Use case:** measure water level in humidifer and send an alert via a discord webhook when the tank is almost empty (or at a specified level)
