@@ -4,9 +4,7 @@ import adafruit_hcsr04
 import requests
 from discord_webhook import DiscordWebhook
 
-#TODO: get rid of outliers before taking average (average, eliminate values outside 2SD, reaverage?)
-
-#ATTN: Set values below
+#ATTN: Set custom user values below
 whurl = 'your-url-here' #url of your discord webhook
 msg = 'your-message-here' #contents of message sent
 sample = 30 #number of readings to average for reported value
