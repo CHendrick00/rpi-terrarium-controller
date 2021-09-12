@@ -21,7 +21,7 @@ i = 0 #initialize counter to 0 values in array
 sum = 0 #initialize sum
 notifiedFlag = 0 #initialize notification sent flag
 flag = 0 #set when full (avg) reading attained
-interval = interval * 60 #convert to seconds for program usage
+interval = interval * 60 #convert to seconds for program use
 
 while True:
     while flag == 0:
@@ -50,9 +50,9 @@ while True:
                     lowIndex += 1
                 distances = distances[bestIndex:bestIndex+highOffset]
 
-                for val in distances: #for each value in the array, add to find the total sum
+                for val in distances: #sum filtered values for avg
                     sum += val
-                avg = sum / len(distances) #find the average of the <sample> number of readings
+                avg = sum / len(distances) #find the average of the filtered number of readings
                 print(str(round(avg,2)) + " Inches") #print average value of filtered readings to 2 decimal places
 
                 #allow notifications again once refilled
