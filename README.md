@@ -5,7 +5,7 @@ CircuitPython files for my highland terrarium sensors
 
 ## HcsrHumidifierTemplate.py
 
-**Use case:** measure water level in humidifer and send an alert via a discord webhook when the tank is almost empty (or at a specified level)
+**Use case:** measure water level in humidifer and send an alert via a discord webhook when the tank is almost empty (or falls below a specified level)
 
 **Hardware:** 
 - Adafruit HC-SR04 or RCWL-1601 sensor
