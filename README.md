@@ -67,3 +67,4 @@ Note: do not include the <> characters in the commands above
 - Test PiInstall.sh
 - Write and test an InfluxDB/Grafana install script
 - Link to hardware in README
+- Grafana/Influxdb install file, walkthrough (reverse proxy w/ apache2, port forwarding, ufw/firewalld, db initialization, etc)
