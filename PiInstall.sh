@@ -29,6 +29,7 @@ pip3 install --upgrade adafruit_blinka
 sudo pip3 install adafruit-circuitpython-hcsr04
 sudo pip3 install adafruit-circuitpython-htu31d
 sudo pip3 install discord-webhook
+sudo pip3 install influxdb
 
 # download sensor files
 wget https://raw.githubusercontent.com/Night-Raider/rpi-terrarium-controller/main/HcsrHumidifier.py
@@ -44,3 +45,4 @@ echo "<@reboot python3 ~/filename.py>, replacing filename with the name of the f
 echo "Additional files can be added to run on reboot simply by adding another line and changing the filename to match"
 
 echo "All of these instructions can be found again in the README on my Github repository"
+echo "Note: do not include the <> characters in the commands above"
