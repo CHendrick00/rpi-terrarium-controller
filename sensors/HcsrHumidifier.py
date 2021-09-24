@@ -1,27 +1,51 @@
 import time
+from datetime import datetime,timezone
 import board
 import adafruit_hcsr04
+from influxdb import InfluxDBClient
 import requests
 from discord_webhook import DiscordWebhook
 
-#ATTN: Set custom user values below
-whurl = 'your-url-here' #url of your discord webhook
-msg = 'your-message-here' #contents of message sent
-sample = 30 #number of readings used to generate reported aggregate value
+#ATTN: Set values below
+whurl = 'your-url-here'
+msg = 'your-message-here' #contents of message to be sent
+maxHeight = 6 #distance from empty to full (inches)
+sensorHeight = .75 #distance from sensor to max water level (inches)
+sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.D17, echo_pin=board.D27) #update pin numbers if necessary
+
+#InfluxDB Client Settings
+host = "192.168.0.0" # Influxdb Server Address
+port = 8086 # Default port; SHOULD NOT NEED CHANGED
+user = "your-username-here" # InfluxDB user/pass for pi
+password = "your-password-here"
+dbname = "sensor_data" # database created for this device
+measurement = "rpi-humidifier" # unique table name for data from this sensor
+location = "Terrarium"
+
+#below values can be left as default
 interval = 10 #time between full readings (minutes)
-dist = 5 #distance to refill level (inches)
-threshold = 2 #distance above refill level when tank is considered filled (inches) (set this somewhere between the refill level and completely filled)
-numNotif = 1 #how many notifications you recieve each time humidifier falls below refill level
-sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.D5, echo_pin=board.D6) #update pins if necessary
+sample = 30 #number of readings to average for reported value; Lower values are MUCH less accurate
+refillLevel = 20 #level at which to recieve refill alert (percent %); Can be left as default
+filledThreshold = 50 #level at whcih tank is considered refilled (percent %); Can be left as default
+numNotif = 3 #how many notifications you recieve each time humidifier falls below refill level
+timeBetween = 180 #time between sending another notification (minutes) (may not be exact if not a multiple of <interval>)
+#END custom values
 
 
-#initializing empty values
+#Finish initializing values
 distances = [] #empty array to store <sample> number of readings
 i = 0 #initialize counter to 0 values in array
 sum = 0 #initialize sum
-notifiedFlag = 0 #initialize notification sent flag
+notifSent = 0 #initialize number of notifications sent
 flag = 0 #set when full (avg) reading attained
-interval = interval * 60 #convert to seconds for program use
+currLevel = -1 #current water level
+interval = interval * 60 #convert to seconds for program usage
+refillLevel = maxHeight * (refillLevel / 100) #convert to water level height
+filledThreshold = maxHeight * (filledThreshold / 100) #convert to water level height
+notifBetween = (timeBetween * 60) // interval
+iter = -1 #initialize for num readings between notifications
+
+client = InfluxDBClient(host, port, user, password, dbname)
 
 while True:
     while flag == 0:
@@ -50,25 +74,46 @@ while True:
                     lowIndex += 1
                 distances = distances[bestIndex:bestIndex+highOffset]
 
-                for val in distances: #sum filtered values for avg
+                for val in distances: #for each value in the array, add to find the total sum
                     sum += val
-                avg = sum / len(distances) #find the average of the filtered number of readings
-                print(str(round(avg,2)) + " Inches") #print average value of filtered readings to 2 decimal places
+                avg = sum / len(distances) #find the average of the <sample> number of readings
+                currLevel = (maxHeight + sensorHeight) - avg #compute current water level above empty
+                currLevelPercent = 100 * (currLevel / maxHeight) #compute water level percentage of maximum water level
+                print(str(round(currLevel,2)) + " Inches / " + str(round(currLevelPercent,2)) + "%") #print current water level to 2 decimal places
+
+                iso = datetime.now(timezone.utc)
+                data = [
+                {
+                  "measurement": measurement,
+                      "tags": {
+                          "location": location,
+                      },
+                      "time": iso,
+                      "fields": {
+                          "water level" : currLevelPercent,
+                      }
+                  }
+                ]
+                client.write_points(data)
 
                 #allow notifications again once refilled
-                if avg < (dist-threshold):
-                    notifiedFlag = 0
+                if currLevel > filledThreshold:
+                    notifSent = 0
+                    iter = -1
 
-                if avg > dist and notifiedFlag < numNotif:
-                    webhook = DiscordWebhook(url=whurl, content=msg)
-                    response = webhook.execute()
-                    notifiedFlag += 1
+                if currLevel < refillLevel and notifSent < numNotif:
+                    iter += 1
+                    if (iter % notifBetween) == 0:
+                        webhook = DiscordWebhook(url=whurl, content=msg)
+                        response = webhook.execute()
+                        notifSent += 1
 
                 #reset values
                 distances = []
                 i = 0
                 sum = 0
                 avg = 0
+                currLevel = -1
                 flag = 1 #set flag to wait <interval> for next full reading
 
 
