@@ -1,0 +1,12 @@
+[Unit]
+Description=Terrarium Monitoring System
+After=multi-user.target
+
+[Service]
+WorkingDirectory=/var/lib/rpi-terrarium-controller
+Type=forking
+Restart=always
+ExecStart=/bin/bash monitor-startup.sh
+
+[Install]
+WantedBy=multi-user.target
