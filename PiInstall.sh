@@ -34,6 +34,7 @@ sudo rm ./blinkatest.py
 pip3 install --upgrade adafruit_blinka
 
 # install required libraries
+sudo apt install libgpiod2
 sudo pip3 install adafruit-circuitpython-hcsr04
 sudo pip3 install adafruit-circuitpython-htu31d
 sudo pip3 install discord-webhook
