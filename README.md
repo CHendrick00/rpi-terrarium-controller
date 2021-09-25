@@ -35,6 +35,13 @@ All of these instructions can be found again in the README on my Github reposito
 Note: do not include the <> characters in the commands above
 ```
 - Be sure to follow the instructions above to finish installation
+## Uninstall.sh
+**DO NOT USE**: this file is untested and may not run properly
+- Removes files and service created by PiInstall.sh
+- Note: Does NOT remove CircuitPython nor python libraries installed by PiInstall.sh
+
+**Instructions:**
+- This file is to be run on the Raspberry Pi used to collect sensor data
 ## HcsrHumidifierTemplate.py
 
 **Use case:** measure water level in humidifier, send alerts via discord when water level falls below a specified level, and log data to InfluxDB
@@ -94,4 +101,4 @@ Note: do not include the <> characters in the commands above
 - Test PiInstall.sh
 - Link to hardware in README
 - Grafana/Influxdb install file, walkthrough (reverse proxy w/ apache2, port forwarding, ufw/firewalld, InfluxDB initialization, etc)
-- Uninstall script
+- Test Uninstall.sh
