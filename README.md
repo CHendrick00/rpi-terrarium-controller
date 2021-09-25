@@ -7,7 +7,7 @@ CircuitPython files for my highland terrarium sensors
 **DO NOT USE**: this file is untested and likely will not run properly
 
 **Instructions:**
-- This file is to be run on the Raspberry Pi
+- This file is to be run on the Raspberry Pi used to collect sensor data
 - To begin, run the following commands in the Pi's terminal:
 ```
 cd ~
