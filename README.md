@@ -23,13 +23,12 @@ sudo ./PiInstall.sh
 ```
 - If the install is successful, you should see the following output:
 ```
-ATTENTION: Before running, you MUST open each hardware-specific file and change the parameters listed at the top to fit your specific situation if needed.
-To do this, use the command <sudo nano "filename\", change the values as needed, then save with ctrl+s, ctrl+x
-To view all files installed, use the command <ls>
-To delete an unneeded file, use command <rm ./filename>
-To run a script automatically at startup, run the command <crontab -e>, select option 1, then at the bottom of the file add the line:
-<@reboot python3 ~/filename.py>, replacing filename with the name of the file to be ran
-Additional files can be added to run on reboot simply by adding another line and changing the filename to match
+echo "ATTENTION: Before finishing installation, you MUST open each hardware-specific file you plan to use and change the parameters listed at the top to fit your specific situation as needed."
+echo "To do this, use the command <sudo nano ~/rpi-terrarium-controller/sensors/FILENAME>, change the values as needed, then save with ctrl+s, ctrl+x"
+echo "To view all sensor files installed, use the commands <cd ~/rpi-terrarium-controller/sensors>, then <ls>"
+echo "To run a sensor on startup, run the command <sudo nano ~/rpi-terrarium-controller/monitor-startup.sh> and add another line using the filename of the sensor you plan to use"
+echo "After adding a sensor to the startup file, simply reboot or run the command <sudo systemctl restart terrarium-monitor>"
+echo "To start/stop/enable on boot/disable on boot/restart the monitoring service, run <sudo systemctl (start/stop/enable/disable/restart) terrarium-monitor>"
 
 All of these instructions can be found again in the README on my Github repository
 Note: do not include the <> characters in the commands above
@@ -37,11 +36,11 @@ Note: do not include the <> characters in the commands above
 - Be sure to follow the instructions above to finish installation
 ## HcsrHumidifierTemplate.py
 
-**Use case:** measure water level in humidifer and send an alert via a discord webhook when the tank is almost empty (or falls below a specified level)
+**Use case:** measure water level in humidifier, send alerts via discord when water level falls below a specified level, and log data to InfluxDB
 
 **Hardware:** 
 - Adafruit HC-SR04 or RCWL-1601 sensor
-- female-female jumper wires OR 22ga wire + soldering iron
+- 22ga jumper wires OR 22ga wire spool + soldering iron
 
 **Prerequisites:** 
 - Raspberry Pi with CircuitPython and HCSR library installed [Instructions by Adafruit](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi)
@@ -50,21 +49,47 @@ Note: do not include the <> characters in the commands above
 - Discord server with webhook
 
 **Features:** 
-- Discord alert with custom message when water level reaches user-specified refill level
-- Specify number of alerts to be sent after consecutive measurements before going silent
-- Alerts become active again when the water level reading rises by a specified amount
+- Discord alert with custom message when water level falls to user-specified refill level
+- Specify number of repeat alerts to be sent before going silent
+- Specify time between repeated alerts
+- Alerts become active again when humidifier is refilled above a specified amount
 - Extremely consistent readings when using default sample size (individual readings have extreme variation/outliers)
 - Specifiable sample size for each aggregate (reported) reading
 - Specifiable interval between readings
+- Readings logged to InfluxDB
 
 **Not implemented:**
-- Alerts for multiple different water levels / report % capacity
-- Logging values to a database
-- Led indicator when taking readings
+- Alerts for multiple different water levels
+
+## HTU31D.py
+**Use case:** measure temperature and humidity, send alerts via discord when humidity falls below a specified level, and log data to InfluxDB
+
+**Hardware:** 
+- Adafruit HTU31D sensor
+- 22ga jumper wires OR 22ga wire spool + soldering iron
+- Adafruit STEMMA QT connector (opt.)
+
+**Prerequisites:** 
+- Raspberry Pi with CircuitPython and HCSR library installed [Instructions by Adafruit](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi)
+- discord-webhook library installed via pip3 [Instructions and documentation](https://opensourcelibs.com/lib/python-discord-webhook)
+- **NOTE:** above requirements can be satisfied by using PiInstall.sh
+- Discord server with webhook
+- InfluxDB / Grafana server installed on Pi or local network computer
+
+**Features:** 
+- Discord alert with custom message when humidity falls below user-specified level
+- Specify number of repeat alerts to be sent before going silent
+- Specify time between repeated alerts
+- Alerts become active again when humidity rises above specified amount
+- Specifiable interval between readings
+- Readings logged to InfluxDB
+
+**Not (yet) implemented:**
+- High humidity alerts
+- High/Low temperature alerts
+- Different day/night alert thresholds
 
 ## TODO:
-- HTU31 sensor file
 - Test PiInstall.sh
-- Write and test an InfluxDB/Grafana install script
 - Link to hardware in README
-- Grafana/Influxdb install file, walkthrough (reverse proxy w/ apache2, port forwarding, ufw/firewalld, db initialization, etc)
+- Grafana/Influxdb install file, walkthrough (reverse proxy w/ apache2, port forwarding, ufw/firewalld, InfluxDB initialization, etc)
