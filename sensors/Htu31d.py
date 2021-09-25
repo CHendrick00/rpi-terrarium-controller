@@ -13,27 +13,30 @@ sensor.humidity_resolution = "0.020%"
 
 #ATTN: Set custom user values below
 whurl = 'your-url-here'
-interval = 30 #time between full readings (seconds)
+interval = 30 #time between readings (seconds)
 humidity_alert_min = 85 #minimum humidity level before sending alert (percent)
-threshold = 2 #percent above minimum humidity level when alert counter will be reset and resume
+threshold = 3 #percent above minimum humidity level when alert counter will be reset and resume
 maxNotif = 3 #how many notifications to recieve each time humidity falls below minimum level
-notifBetween = 3 #number of readings between sending another notification
+timeBetween = 30 #time between sending another notification (minutes) (may not be exact if not a multiple of <interval>)
+
 #InfluxDB Client Settings
-host = "127.0.0.1" # Influxdb Server Address; set to 127.0.0.1 if installed on same machine
-port = 8086 # Default port; SHOULD NOT NEED TO BE CHANGED
-user = "user" # InfluxDB user/pass for pi; CHANGE THIS to whatever you set during InfluxDB install
+host = "192.168.0.0" # Influxdb Server Address
+port = 8086 # Default port; SHOULD NOT NEED CHANGED
+user = "your-user-here" # InfluxDB user/pass for pi
 password = "your-password-here"
-dbname = "sensor_data" #database created for this terrarium; should not need changed
-
-measurement = "rpi-HTU31D" #tag for sensor; should not need changed
-location = "Terrarium" #tag for location of sensor; change if desired
+dbname = "sensor_data" # database created for this device
+measurement = "rpi-HTU31D" # unique table name for data from this sensor
+location = "Terrarium"
 #END custom values
-
 
 client = InfluxDBClient(host, port, user, password, dbname)
 
-iter = -1 #initialize for num readings between notifications
+#Finish initializing values
 notifSent = 0 #initialize number of notifications sent
+notifBetween = (timeBetween * 60) // interval
+iter = -1 #initialize for num readings between notifications
+
+
 while True:
     try:
         iso = datetime.now(timezone.utc)
@@ -57,21 +60,20 @@ while True:
           }
         ]
         client.write_points(data)
-        print("data logged")
 
         if humidity > 90: #Prevent condensation in high humidity environments
             sensor.heater = True
             time.sleep(1)
             sensor.heater = False
 
-        if humidity > (humidity_alert_min + threshold): #reset notifications if humidity rises above threshold
+        if humidity > (humidity_alert_min + threshold):
             notifSent = 0
             iter = -1
 
         if humidity < humidity_alert_min and notifSent < maxNotif:
             iter += 1
             if (iter % notifBetween) == 0:
-                webhook = DiscordWebhook(url=whurl, content="ATTN: Humidity has fallen to %0.1f%%" % humidity) #change message if desired
+                webhook = DiscordWebhook(url=whurl, content="ATTN: Humidity has fallen to %0.1f%%" % humidity) #Message can be changed if desired
                 response = webhook.execute()
                 notifSent += 1
 
@@ -81,9 +83,3 @@ while True:
 
 
     time.sleep(interval)
-
-
-
-    '''print("\nTemperature: %0.1f C" % sensor.temperature)
-    print("Humidity: %0.1f %%" % sensor.relative_humidity)
-    time.sleep(2)'''
