@@ -14,7 +14,7 @@ sensorHeight = .75 #distance from sensor to max water level (inches)
 sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.D17, echo_pin=board.D27) #update pin numbers if necessary
 
 #InfluxDB Client Settings
-host = "192.168.0.0" # Influxdb Server Address
+host = "127.0.0.1" # Influxdb Server Address; do not change if InfluxDB is running on the same device
 port = 8086 # Default port; SHOULD NOT NEED CHANGED
 user = "your-username-here" # InfluxDB user/pass for pi
 password = "your-password-here"
@@ -104,7 +104,7 @@ while True:
                 if currLevel < refillLevel and notifSent < numNotif:
                     iter += 1
                     if (iter % notifBetween) == 0:
-                        webhook = DiscordWebhook(url=whurl, content=msg)
+                        webhook = DiscordWebhook(url=whurl, content="ATTN: Humidifier level is currently at %0.1f%%. Please refill soon." % currLevelPercent) #Message can be changed if desired
                         response = webhook.execute()
                         notifSent += 1
 
