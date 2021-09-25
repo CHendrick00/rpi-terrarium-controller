@@ -48,6 +48,12 @@ Note: do not include the <> characters in the commands above
 
 **Instructions:**
 - This file is to be run on the Raspberry Pi used to collect sensor data
+- To uninstall, run the following commands in the Pi's terminal:
+```
+cd ~/rpi-terrarium-controller
+sudo chmod u+x Uninstall.sh
+./Uninstall.sh (DO NOT RUN THIS WITH sudo)
+```
 ## HcsrHumidifierTemplate.py
 
 **Use case:** measure water level in humidifier, send alerts via discord when water level falls below a specified level, and log data to InfluxDB
