@@ -15,15 +15,19 @@ sudo apt install git
 git clone https://github.com/Night-Raider/rpi-terrarium-controller.git
 cd ./rpi-terrarium-controller
 sudo chmod u+x PiInstall.sh
-sudo ./PiInstall.sh
+./PiInstall.sh (DO NOT RUN THIS WITH sudo)
 ```
 - Note: this process may take a while
-- After installing CircuitPython, the Pi will reboot. After it reboots, run the script again with the commands:
+- After installing CircuitPython, the Pi will ask to reboot. If you choose to reboot immediately, run the script again with the commands:
 ```
 cd ~
-sudo ./PiInstall.sh
+./PiInstall.sh (DO NOT RUN THIS WITH sudo)
 ```
-- When the script finishes running, you should see the following output:
+- If you choose not to reboot immediately, then once the script finishes run the command
+```
+sudo reboot
+```
+- When the script finishes, you should see the following output:
 ```
 echo "ATTENTION: Before finishing installation, you MUST open each hardware-specific file you plan to use and change the parameters listed at the top to fit your specific situation as needed."
 echo "To do this, use the command <sudo nano ~/rpi-terrarium-controller/sensors/FILENAME>, change the values as needed, then save with ctrl+s, ctrl+x"
