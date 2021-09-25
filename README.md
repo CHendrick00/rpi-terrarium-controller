@@ -4,7 +4,7 @@ CircuitPython files for my highland terrarium sensors
 [Pi Header Pinout Diagram](https://i.stack.imgur.com/JtpG7.png)
 
 ## PiInstall.sh
-**DO NOT USE**: this file is untested and likely will not run properly
+**NOTE:** this file has not yet been tested on a clean Raspberry Pi OS install, so while it does work it may not install all required libraries
 
 **Instructions:**
 - This file is to be run on the Raspberry Pi used to collect sensor data
@@ -42,7 +42,6 @@ Note: do not include the <> characters in the commands above
 ```
 - Be sure to follow the instructions above to finish installation
 ## Uninstall.sh
-**DO NOT USE**: this file is untested and may not run properly
 - Removes files and service created by PiInstall.sh
 - Note: Does NOT remove CircuitPython nor python libraries installed by PiInstall.sh
 
