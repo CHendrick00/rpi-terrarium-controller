@@ -39,9 +39,15 @@ sudo pip3 install adafruit-circuitpython-htu31d
 sudo pip3 install discord-webhook
 sudo pip3 install influxdb
 
-cd ~/rpi-terrarium-controller
-chmod u+x monitor-startup.sh
-mv ./terrarium-monitor.service /etc/systemd/system/terrarium-monitor.service
+cd ~
+mv ./rpi-terrarium-controller /var/lib/rpi-terrarium-controller
+cd /var/lib/rpi-terrarium-controller
+sudo chmod u+x monitor-startup.sh
+ln ./terrarium-monitor.service /etc/systemd/system/terrarium-monitor.service
+cd /var/lib
+sudo ln -s ./rpi-terrarium-controller ~/rpi-terrarium-controller
+cd ~
+
 sudo systemctl daemon-reload
 sudo systemctl enable terrarium-monitor.service
 sudo systemctl start terrarium-monitor.service
@@ -53,6 +59,7 @@ echo "To view all sensor files installed, use the commands <cd ~/rpi-terrarium-c
 echo "To run a sensor on startup, run the command <sudo nano ~/rpi-terrarium-controller/monitor-startup.sh> and add another line using the filename of the sensor you plan to use"
 echo "After adding a sensor to the startup file, simply reboot or run the command <sudo systemctl restart terrarium-monitor>"
 echo "To start/stop/enable on boot/disable on boot/restart the monitoring service, run <sudo systemctl (start/stop/enable/disable/restart) terrarium-monitor>"
+echo "If your Pi uses a username other than the default <pi>, you need to change the <User> field in ./rpi-terrarium-controller/terrarium-monitor.service"
 
 echo "All of these instructions can be found again in the README on my Github repository"
 echo "Note: do not include the <> characters in the commands above"
