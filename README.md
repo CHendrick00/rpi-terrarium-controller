@@ -11,7 +11,9 @@ CircuitPython files for my highland terrarium sensors
 - To begin, run the following commands in the Pi's terminal:
 ```
 cd ~
-wget https://raw.githubusercontent.com/Night-Raider/rpi-terrarium-controller/main/PiInstall.sh
+sudo apt install git
+git clone https://github.com/Night-Raider/rpi-terrarium-controller.git
+cd ./rpi-terrarium-controller
 sudo chmod u+x PiInstall.sh
 sudo ./PiInstall.sh
 ```
@@ -21,7 +23,7 @@ sudo ./PiInstall.sh
 cd ~
 sudo ./PiInstall.sh
 ```
-- If the install is successful, you should see the following output:
+- When the script finishes running, you should see the following output:
 ```
 echo "ATTENTION: Before finishing installation, you MUST open each hardware-specific file you plan to use and change the parameters listed at the top to fit your specific situation as needed."
 echo "To do this, use the command <sudo nano ~/rpi-terrarium-controller/sensors/FILENAME>, change the values as needed, then save with ctrl+s, ctrl+x"
