@@ -20,7 +20,7 @@ maxNotif = 3 #how many notifications to recieve each time humidity falls below m
 timeBetween = 30 #time between sending another notification (minutes) (may not be exact if not a multiple of <interval>)
 
 #InfluxDB Client Settings
-host = "192.168.0.0" # Influxdb Server Address
+host = "127.0.0.1" # Influxdb Server Address; do not change if InfluxDB is running on the same device
 port = 8086 # Default port; SHOULD NOT NEED CHANGED
 user = "your-user-here" # InfluxDB user/pass for pi
 password = "your-password-here"
