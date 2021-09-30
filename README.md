@@ -29,13 +29,13 @@ sudo reboot
 ```
 - When the script finishes, you should see the following output:
 ```
-echo "ATTENTION: Before finishing installation, you MUST open each hardware-specific file you plan to use and change the parameters listed at the top to fit your specific situation as needed."
-echo "To do this, use the command <sudo nano ~/rpi-terrarium-controller/sensors/FILENAME>, change the values as needed, then save with ctrl+s, ctrl+x"
-echo "To view all sensor files installed, use the commands <cd ~/rpi-terrarium-controller/sensors>, then <ls>"
-echo "To run a sensor on startup, run the command <sudo nano ~/rpi-terrarium-controller/monitor-startup.sh> and add another line using the filename of the sensor you plan to use"
-echo "After adding a sensor to the startup file, simply reboot or run the command <sudo systemctl restart terrarium-monitor>"
-echo "To start/stop/enable on boot/disable on boot/restart the monitoring service, run <sudo systemctl (start/stop/enable/disable/restart) terrarium-monitor>"
-echo "It is HIGHLY recommended to change the default password on the terrarium-monitor account. Do this with <sudo passwd terrarium-monitor> and follow the prompts"
+ATTENTION: Before finishing installation, you MUST open each hardware-specific file you plan to use and change the parameters listed at the top to fit your specific situation as needed.
+To do this, use the command <sudo nano ~/rpi-terrarium-controller/sensors/FILENAME>, change the values as needed, then save with ctrl+s, ctrl+x
+To view all sensor files installed, use the commands <cd ~/rpi-terrarium-controller/sensors>, then <ls>
+To run a sensor on startup, run the command <sudo nano ~/rpi-terrarium-controller/monitor-startup.sh> and add another line using the filename of the sensor you plan to use
+After adding a sensor to the startup file, simply reboot or run the command <sudo systemctl restart terrarium-monitor>
+To start/stop/enable on boot/disable on boot/restart the monitoring service, run <sudo systemctl (start/stop/enable/disable/restart) terrarium-monitor>
+If your Pi uses a username other than the default <pi>, you need to change the <User> field in ./rpi-terrarium-controller/terrarium-monitor.service
 
 All of these instructions can be found again in the README on my Github repository
 Note: do not include the <> characters in the commands above
