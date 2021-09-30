@@ -3,6 +3,7 @@ Description=Terrarium Monitoring System
 After=multi-user.target
 
 [Service]
+User=terrarium-monitor
 WorkingDirectory=/var/lib/rpi-terrarium-controller
 Type=forking
 Restart=always
