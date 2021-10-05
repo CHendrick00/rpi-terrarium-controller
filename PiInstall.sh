@@ -44,17 +44,16 @@ cd ~
 sudo rm -r /var/lib/rpi-terrarium-controller
 sudo mv ./rpi-terrarium-controller /var/lib/rpi-terrarium-controller
 cd /var/lib/rpi-terrarium-controller
-sudo chmod u+x monitor-startup.sh
 sudo chmod u+x Uninstall.sh
-sudo rm /etc/systemd/system/terrarium-monitor.service
-sudo ln ./terrarium-monitor.service /etc/systemd/system/terrarium-monitor.service
+sudo rm /etc/systemd/system/terrarium-*
+sudo ln ./terrarium-* /etc/systemd/system/terrarium-*
 cd ~
 sudo rm -r "$(pwd)/rpi-terrarium-controller"
 sudo ln -s /var/lib/rpi-terrarium-controller "$(pwd)/rpi-terrarium-controller"
 
 sudo systemctl daemon-reload
-sudo systemctl enable terrarium-monitor.service
-sudo systemctl start terrarium-monitor.service
+sudo systemctl enable terrarium-*.service
+sudo systemctl start terrarium-monitor.target
 
 
 echo "ATTENTION: Before finishing installation, you MUST open each hardware-specific file you plan to use and change the parameters listed at the top to fit your specific situation as needed."
