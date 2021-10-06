@@ -34,17 +34,19 @@ sudo rm ./blinkatest.py
 pip3 install --upgrade adafruit_blinka
 
 # install required libraries
-sudo apt install libgpiod2 -y
-if [[ ! -e /usr/local/lib/python3.7/dist-packages/adafruit_circuitpython_hcsr04* ]]; then
+if [[ ! -d /usr/share/doc/libgpiod2* ]]; then
+  sudo apt install libgpiod2 -y
+fi
+if [[ ! -d /usr/local/lib/python3.7/dist-packages/adafruit_circuitpython_hcsr04* ]]; then
   sudo pip3 install adafruit-circuitpython-hcsr04
 fi
-if [[ ! -e /usr/local/lib/python3.7/dist-packages/adafruit_circuitpython_htu31d* ]]; then
+if [[ ! -d /usr/local/lib/python3.7/dist-packages/adafruit_circuitpython_htu31d* ]]; then
   sudo pip3 install adafruit-circuitpython-htu31d
 fi
-if [[ ! -e /usr/local/lib/python3.7/dist-packages/discord_webhook* ]]; then
+if [[ ! -d /usr/local/lib/python3.7/dist-packages/discord_webhook* ]]; then
   sudo pip3 install discord-webhook
 fi
-if [[ ! -e /usr/local/lib/python3.7/dist-packages/influxdb* ]]; then
+if [[ ! -d /usr/local/lib/python3.7/dist-packages/influxdb* ]]; then
   sudo pip3 install influxdb
 fi
 
