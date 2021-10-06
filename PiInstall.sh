@@ -60,11 +60,10 @@ sudo mkdir /etc/systemd/system/terrarium-monitor.target.wants
 find /var/lib/rpi-terrarium-controller/services/ -name "terrarium-*" -exec sudo ln '{}' /etc/systemd/system/ \;
 find /var/lib/rpi-terrarium-controller/services/ -name "terrarium-*.service" -exec sudo ln '{}' /etc/systemd/system/terrarium-monitor.target.wants/ \;
 cd ~
-sudo rm -r "$(pwd)/rpi-terrarium-controller"
 sudo ln -s /var/lib/rpi-terrarium-controller "$(pwd)/rpi-terrarium-controller"
 
 sudo systemctl daemon-reload
-sudo systemctl enable 'terrarium-*'
+find /etc/systemd/system/ -name "terrarium-*.service" -exec sudo systemctl enable {} \;
 sudo systemctl start terrarium-monitor.target
 
 
