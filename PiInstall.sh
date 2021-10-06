@@ -35,10 +35,14 @@ pip3 install --upgrade adafruit_blinka
 
 # install required libraries
 sudo apt install libgpiod2 -y
-sudo pip3 install adafruit-circuitpython-hcsr04
-sudo pip3 install adafruit-circuitpython-htu31d
-sudo pip3 install discord-webhook
-sudo pip3 install influxdb
+if [[ ! -e /usr/local/lib/python3.7/dist-packages/adafruit_circuitpython_hcsr04* ]]; then
+  sudo pip3 install adafruit-circuitpython-hcsr04
+if [[ ! -e /usr/local/lib/python3.7/dist-packages/adafruit_circuitpython_htu31d* ]]; then
+  sudo pip3 install adafruit-circuitpython-htu31d
+if [[ ! -e /usr/local/lib/python3.7/dist-packages/discord_webhook* ]]; then
+  sudo pip3 install discord-webhook
+if [[ ! -e /usr/local/lib/python3.7/dist-packages/influxdb* ]]; then
+  sudo pip3 install influxdb
 
 cd ~
 sudo rm -r /var/lib/rpi-terrarium-controller
