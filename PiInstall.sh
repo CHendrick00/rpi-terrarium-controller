@@ -53,9 +53,9 @@ sudo rm -r /var/lib/rpi-terrarium-controller
 sudo mv ./rpi-terrarium-controller /var/lib/rpi-terrarium-controller
 cd /var/lib/rpi-terrarium-controller
 sudo chmod u+x Uninstall.sh
-sudo rm -r /etc/systemd/system/terrarium-*
+find . -wholename "/etc/systemd/system/terrarium-*" -exec sudo rm -r '{}' \;
 sudo mkdir /etc/systemd/system/terrarium-monitor.target.wants
-sudo ln ./services/terrarium-* /etc/systemd/system/terrarium-*
+find . -wholename "./services/terrarium-*" -exec sudo ln '{}' /etc/systemd/system/ \;
 cd ~
 sudo rm -r "$(pwd)/rpi-terrarium-controller"
 sudo ln -s /var/lib/rpi-terrarium-controller "$(pwd)/rpi-terrarium-controller"
