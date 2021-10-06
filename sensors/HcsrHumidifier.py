@@ -1,5 +1,9 @@
 import time
 from datetime import datetime,timezone
+import subprocess
+import sys
+import signal
+from contextlib import contextmanager
 import board
 import adafruit_hcsr04
 from influxdb import InfluxDBClient
@@ -11,7 +15,8 @@ whurl = 'your-url-here'
 msg = 'your-message-here' #contents of message to be sent
 maxHeight = 6 #distance from empty to full (inches)
 sensorHeight = .75 #distance from sensor to max water level (inches)
-sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.D17, echo_pin=board.D27) #update pin numbers if necessary
+trigger_pin=board.D17 #set pin numbers as needed
+echo_pin=board.D27
 
 #InfluxDB Client Settings
 host = "127.0.0.1" # Influxdb Server Address; do not change if InfluxDB is running on the same device
@@ -23,12 +28,12 @@ measurement = "rpi-humidifier" # unique table name for data from this sensor
 location = "Terrarium"
 
 #below values can be left as default
-interval = 10 #time between full readings (minutes)
+interval = 2 #time between full readings (minutes)
 sample = 30 #number of readings to average for reported value; Lower values are MUCH less accurate
 refillLevel = 20 #level at which to recieve refill alert (percent %); Can be left as default
-filledThreshold = 50 #level at whcih tank is considered refilled (percent %); Can be left as default
+filledThreshold = 50 #level at which tank is considered refilled (percent %); Can be left as default
 numNotif = 3 #how many notifications you recieve each time humidifier falls below refill level
-timeBetween = 180 #time between sending another notification (minutes) (may not be exact if not a multiple of <interval>)
+timeBetween = 120 #time between sending another notification (minutes) (may not be exact if not a multiple of <interval>)
 #END custom values
 
 
@@ -45,12 +50,33 @@ filledThreshold = maxHeight * (filledThreshold / 100) #convert to water level he
 notifBetween = (timeBetween * 60) // interval
 iter = -1 #initialize for num readings between notifications
 
+#create Timeout module
+class TimeoutException(Exception): pass
+@contextmanager
+def time_limit(seconds):
+    def signal_handler(signum, frame):
+        raise TimeoutException("Timed out!")
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+
+#create reporting objects
 client = InfluxDBClient(host, port, user, password, dbname)
+sonar = adafruit_hcsr04.HCSR04(trigger_pin, echo_pin)
 
 while True:
     while flag == 0:
         try:
-            distIn = sonar.distance / 2.54 #distance in inches
+            try:
+                with time_limit(10): #timeout and kill bad libgpiod process if it fails ; systemd will automatically restart process
+                    distIn = sonar.distance / 2.54 #distance in Inches
+            except TimeoutException as e:
+                print("Killing faulty libgpiod process")
+                subprocess.run(["pkill", "-f", "libgpiod_pulsein"]) #kill active libgpiod process
+                sys.exit(1)
             distances.append(distIn) #append distance value to array
             i += 1 #increment counter on valid reading
 
@@ -116,9 +142,21 @@ while True:
                 currLevel = -1
                 flag = 1 #set flag to wait <interval> for next full reading
 
+            time.sleep(0.25) #interval between individual readings
 
-        except RuntimeError:
-            pass #ignore and retry
-        time.sleep(0.1) #interval between individual readings
+        except RuntimeError as e:
+            e = str(e)
+            if "Timed out" in e:
+                pass #ignore and retry
+            else:
+                print("Killing faulty libgpiod process")
+                subprocess.run(["pkill", "-f", "libgpiod_pulsein"]) #kill active libgpiod process
+                sys.exit(1)
+        except KeyboardInterrupt:
+            sys.exit(0)
+        except:
+            sys.exit(1)
+
+        time.sleep(0.25) #interval between individual readings
     time.sleep(interval) #interval between full readings
     flag = 0 #reset flag to take a full reading
