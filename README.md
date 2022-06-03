@@ -57,17 +57,17 @@ sudo chmod u+x Uninstall.sh
 
 **Use case:** measure water level in humidifier, send alerts via discord when water level falls below a specified level, and log data to InfluxDB
 
-**Hardware:** 
+**Hardware:**
 - Adafruit HC-SR04 or RCWL-1601 sensor
 - 22ga jumper wires OR 22ga wire spool + soldering iron
 
-**Prerequisites:** 
+**Prerequisites:**
 - Raspberry Pi with CircuitPython and HCSR library installed [Instructions by Adafruit](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi)
 - discord-webhook library installed via pip3 [Instructions and documentation](https://opensourcelibs.com/lib/python-discord-webhook)
 - **NOTE:** above requirements can be satisfied by using PiInstall.sh
 - Discord server with webhook
 
-**Features:** 
+**Features:**
 - Discord alert with custom message when water level falls to user-specified refill level
 - Specify number of repeat alerts to be sent before going silent
 - Specify time between repeated alerts
@@ -83,19 +83,19 @@ sudo chmod u+x Uninstall.sh
 ## HTU31D.py
 **Use case:** measure temperature and humidity, send alerts via discord when humidity falls below a specified level, and log data to InfluxDB
 
-**Hardware:** 
+**Hardware:**
 - Adafruit HTU31D sensor
 - 22ga jumper wires OR 22ga wire spool + soldering iron
 - Adafruit STEMMA QT connector (opt.)
 
-**Prerequisites:** 
+**Prerequisites:**
 - Raspberry Pi with CircuitPython and HCSR library installed [Instructions by Adafruit](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi)
 - discord-webhook library installed via pip3 [Instructions and documentation](https://opensourcelibs.com/lib/python-discord-webhook)
 - **NOTE:** above requirements can be satisfied by using PiInstall.sh
 - Discord server with webhook
 - InfluxDB / Grafana server installed on Pi or local network computer
 
-**Features:** 
+**Features:**
 - Discord alert with custom message when humidity falls below user-specified level
 - Specify number of repeat alerts to be sent before going silent
 - Specify time between repeated alerts

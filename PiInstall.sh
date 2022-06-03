@@ -24,47 +24,55 @@ if [ ! -f "$FILE" ]; then
 
 fi
 
-# ensure CircuitPython install was successful
-cd ~
-sudo rm ./tmp
-sudo rm ./raspi-blinka.py
-cd ~/rpi-terrarium-controller
-python3 blinkatest.py
-sudo rm ./blinkatest.py
-pip3 install --upgrade adafruit_blinka
+if [ ! -f "/etc/systemd/system/terrarium-monitor.target" ] && [ -d ~/rpi-terrarium-controller ]; then
+  # ensure CircuitPython install was successful
+  cd ~
+  sudo rm ./tmp
+  sudo rm ./raspi-blinka.py
+  cd ~/rpi-terrarium-controller
+  python3 blinkatest.py
+  sudo rm ./blinkatest.py
+  pip3 install --upgrade adafruit_blinka
 
-# install required libraries
-if [ ! -d /usr/share/doc/libgpiod2 ]; then
-  sudo apt install libgpiod2 -y
-fi
-if [ ! -f /usr/local/lib/python3.7/dist-packages/adafruit_hcsr04.py ]; then
-  sudo pip3 install adafruit-circuitpython-hcsr04
-fi
-if [ ! -f /usr/local/lib/python3.7/dist-packages/adafruit_htu31d.py ]; then
-  sudo pip3 install adafruit-circuitpython-htu31d
-fi
-if [ ! -d /usr/local/lib/python3.7/dist-packages/discord_webhook ]; then
-  sudo pip3 install discord-webhook
-fi
-if [ ! -d /usr/local/lib/python3.7/dist-packages/influxdb ]; then
-  sudo pip3 install influxdb
-fi
+  # install required libraries
+  if [ ! -d /usr/share/doc/libgpiod2 ]; then
+    sudo apt install libgpiod2 -y
+  fi
+  if [ ! -f /usr/local/lib/python3.7/dist-packages/adafruit_hcsr04.py ]; then
+    sudo pip3 install adafruit-circuitpython-hcsr04
+  fi
+  if [ ! -f /usr/local/lib/python3.7/dist-packages/adafruit_htu31d.py ]; then
+    sudo pip3 install adafruit-circuitpython-htu31d
+  fi
+  if [ ! -d /usr/local/lib/python3.7/dist-packages/discord_webhook ]; then
+    sudo pip3 install discord-webhook
+  fi
+  if [ ! -d /usr/local/lib/python3.7/dist-packages/influxdb ]; then
+    sudo pip3 install influxdb
+  fi
 
-cd ~
-sudo rm -r /var/lib/rpi-terrarium-controller
-sudo mv ./rpi-terrarium-controller /var/lib/rpi-terrarium-controller
-cd /var/lib/rpi-terrarium-controller
-sudo chmod u+x Uninstall.sh
-find /etc/systemd/system/ -name "terrarium-*" -exec sudo rm -r {} \;
-sudo mkdir /etc/systemd/system/terrarium-monitor.target.wants
-find /var/lib/rpi-terrarium-controller/services/ -name "terrarium-*" -exec sudo ln '{}' /etc/systemd/system/ \;
-find /var/lib/rpi-terrarium-controller/services/ -name "terrarium-*.service" -exec sudo ln '{}' /etc/systemd/system/terrarium-monitor.target.wants/ \;
-cd ~
-sudo ln -s /var/lib/rpi-terrarium-controller "$(pwd)/rpi-terrarium-controller"
+  cd ~
+  sudo rm -r /var/lib/rpi-terrarium-controller
+  sudo mv ./rpi-terrarium-controller /var/lib/rpi-terrarium-controller
+  cd /var/lib/rpi-terrarium-controller
+  sudo chmod u+x Uninstall.sh
+  find /etc/systemd/system/ -name "terrarium-*" -exec sudo rm -r {} \;
+  sudo mkdir /etc/systemd/system/terrarium-monitor.target.wants
+  find /var/lib/rpi-terrarium-controller/services/ -name "terrarium-*" -exec sudo ln '{}' /etc/systemd/system/ \;
+  find /var/lib/rpi-terrarium-controller/services/ -name "terrarium-*.service" -exec sudo ln '{}' /etc/systemd/system/terrarium-monitor.target.wants/ \;
+  cd ~
+  sudo ln -s /var/lib/rpi-terrarium-controller "$(pwd)/rpi-terrarium-controller"
 
-sudo systemctl daemon-reload
-find /etc/systemd/system/ -name "terrarium-*.service" -exec sudo systemctl enable {} \;
-sudo systemctl start terrarium-monitor.target
+  sudo systemctl daemon-reload
+  find /etc/systemd/system/ -name "terrarium-*.service" -exec sudo systemctl enable {} \;
+  sudo systemctl start terrarium-monitor.target
+
+elif [ -f "/etc/systemd/system/terrarium-monitor.target" ]; then
+  echo "All installation steps have been run previously. If you wish to reinstall, please run the uninstall script first."
+
+elif [ ! -d ~/rpi-terrarium-controller ]; then
+  echo "Required files could not be found at ~/rpi-terrarium-controller. Please redownload or move them to this location."
+fi
 
 
 echo "ATTENTION: Before finishing installation, you MUST open each hardware-specific file you plan to use and change the parameters listed at the top to fit your specific situation as needed."
