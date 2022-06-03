@@ -1,0 +1,15 @@
+[Unit]
+Description=Terrarium Monitoring System Module
+After=multi-user.target
+PartOf=terrarium-monitor.target
+
+[Service]
+User=pi
+WorkingDirectory=/var/lib/rpi-terrarium-controller/sensors
+Type=simple
+ExecStart=/usr/bin/python ./DS18B20.py
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
