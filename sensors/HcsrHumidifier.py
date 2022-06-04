@@ -31,7 +31,7 @@ location = "Terrarium"
 interval = 2 #time between full readings (minutes)
 sample = 30 #number of readings to average for reported value; Lower values are MUCH less accurate
 refillLevel = 20 #level at which to recieve refill alert (percent %); Can be left as default
-filledThreshold = 50 #level at which tank is considered refilled (percent %); Can be left as default
+filledThreshold = 75 #level at which tank is considered refilled (percent %); Can be left as default
 numNotif = 3 #how many notifications you recieve each time humidifier falls below refill level
 timeBetween = 120 #time between sending another notification (minutes) (may not be exact if not a multiple of <interval>)
 #END custom values
