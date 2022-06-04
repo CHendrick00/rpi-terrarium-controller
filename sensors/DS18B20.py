@@ -11,15 +11,14 @@ from kasa import SmartPlug
 #ATTN: Set custom user values below
 whurl = 'your-url-here' # Discord alery webhook url
 kasa_ip = '127.0.0.1' # IP address of smart plug
-cooling_alert_time = 30 # Max amount of time for plug to be turned on if not hitting target temperature (off_temp). Set to -1 to disable.
-plug_cooldown_time = 10 # Time for plug to be disabled
+cooling_alert_time = 30 # Max amount of time (minutes) before alert sent if not hitting target temperature (off_temp). Set to -1 to disable.
 interval = 60 # Time between readings (seconds)
-off_temp = 40 # Temp (F) to turn Kasa plug off
-on_temp = 50 # Temp (F) to turn Kasa plug on
-temp_alert_below = 34 # Minimum temperature before sending alert (F). Should be set between 32 and off_temp.
-threshold = 4 # Degrees F above <temp_alert_below> when alert counter will be reset
-maxNotif = 99 # How many notifications to recieve each time temperature falls below minimum level
-timeBetween = 30 # Time between sending another notification (minutes) (may not be exact if not a multiple of <interval>)
+off_temp = 40 # Temp (F) to turn Kasa plug off - reservoir target temperature - set to above 32 degrees
+on_temp = 46 # Temp (F) to turn Kasa plug back on - set this a few degrees above off_temp
+temp_alert_below = 35 # Minimum temperature before sending alert (F). Should be set between 32 and off_temp.
+threshold = 5 # Degrees F above <temp_alert_below> when alert counter will be reset
+maxNotif = 99 # How many notifications to receive each time temperature falls below minimum level
+timeBetween = 30 # Time between sending another notification (minutes) (may not be exact)
 
 #InfluxDB Client Settings
 host = "127.0.0.1" # Influxdb Server Address; do not change if InfluxDB is running on the same device
