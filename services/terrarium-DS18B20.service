@@ -7,7 +7,7 @@ PartOf=terrarium-monitor.target
 User=pi
 WorkingDirectory=/var/lib/rpi-terrarium-controller/sensors
 Type=simple
-ExecStart=/usr/bin/python ./DS18B20.py
+ExecStart=/usr/bin/python ./DS18B20-Cooler.py
 Restart=always
 RestartSec=5s
 
