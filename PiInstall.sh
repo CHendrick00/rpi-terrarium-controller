@@ -57,8 +57,8 @@ if [ ! -f "/etc/systemd/system/terrarium-monitor.target" ] && [ -d ~/rpi-terrari
   sudo chmod u+x Uninstall.sh
   find /etc/systemd/system/ -name "terrarium-*" -exec sudo rm -r {} \;
   sudo mkdir /etc/systemd/system/terrarium-monitor.target.wants
-  find /var/lib/rpi-terrarium-controller/services/ -name "terrarium-*" -exec sudo ln '{}' /etc/systemd/system/ \;
-  find /var/lib/rpi-terrarium-controller/services/ -name "terrarium-*.service" -exec sudo ln '{}' /etc/systemd/system/terrarium-monitor.target.wants/ \;
+  find /var/lib/rpi-terrarium-controller/services/ -name "terrarium-*" -exec sudo ln -s '{}' /etc/systemd/system/ \;
+  find /etc/systemd/system/ -maxdepth 1 -name "terrarium-*.service" -exec sudo ln -s '{}' /etc/systemd/system/terrarium-monitor.target.wants/ \;
   cd ~
   sudo ln -s /var/lib/rpi-terrarium-controller "$(pwd)/rpi-terrarium-controller"
 
@@ -74,12 +74,11 @@ elif [ ! -d ~/rpi-terrarium-controller ]; then
 fi
 
 
-echo "ATTENTION: Before finishing installation, you MUST open each hardware-specific file you plan to use and change the parameters listed at the top to fit your specific situation as needed."
-echo "To do this, use the command <sudo nano ~/rpi-terrarium-controller/sensors/FILENAME>, change the values as needed, then save with ctrl+s, ctrl+x"
+echo "ATTENTION: Before finishing installation, you MUST open the config file located at /var/lib/rpi-terrarium-controller/sensors/config.ini and edit the parameters as needed."
+echo "To do this, use the command <sudo nano /var/lib/rpi-terrarium-controller/sensors/config.ini>, change the values as needed, then save with ctrl+s, ctrl+x"
+echo "After modifying values in config.ini, reload the monitoring services with <sudo systemctl daemon-reload terrarium-monitor.target>"
 echo "To view all sensor files installed, use the commands <cd ~/rpi-terrarium-controller/sensors>, then <ls>"
-echo "To run a sensor on startup, run the command <sudo nano ~/rpi-terrarium-controller/monitor-startup.sh> and add another line using the filename of the sensor you plan to use"
-echo "After adding a sensor to the startup file, simply reboot or run the command <sudo systemctl restart terrarium-monitor>"
-echo "To start/stop/enable on boot/disable on boot/restart the monitoring service, run <sudo systemctl (start/stop/enable/disable/restart) terrarium-monitor>"
+echo "To start,stop,enable/disable on boot, or restart the monitoring service, run <sudo systemctl (start/stop/enable/disable/restart) terrarium-monitor>"
 echo "If your Pi uses a username other than the default <pi>, you need to change the <User> field in ./rpi-terrarium-controller/terrarium-monitor.service"
 
 echo "All of these instructions can be found again in the README on my Github repository"

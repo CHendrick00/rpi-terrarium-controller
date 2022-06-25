@@ -1,7 +1,5 @@
 #!/bin/bash
-for i in /etc/systemd/system/terrarium*.service; do
-    sudo systemctl disable $i
-done
+find /etc/systemd/system/ -name "terrarium-*.service" -exec sudo systemctl disable {} \;
 sudo systemctl stop terrarium-monitor.target
 cd ~
 sudo rm -r "$(pwd)/rpi-terrarium-controller" /var/lib/rpi-terrarium-controller
