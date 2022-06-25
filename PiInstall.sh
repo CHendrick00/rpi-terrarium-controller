@@ -76,7 +76,7 @@ fi
 
 echo "ATTENTION: Before finishing installation, you MUST open the config file located at /var/lib/rpi-terrarium-controller/sensors/config.ini and edit the parameters as needed."
 echo "To do this, use the command <sudo nano /var/lib/rpi-terrarium-controller/sensors/config.ini>, change the values as needed, then save with ctrl+s, ctrl+x"
-echo "After modifying values in config.ini, reload the monitoring services with <sudo systemctl daemon-reload terrarium-monitor.target>"
+echo "After modifying values in config.ini, reload the monitoring services with <sudo systemctl restart terrarium-monitor.target>"
 echo "To view all sensor files installed, use the commands <cd ~/rpi-terrarium-controller/sensors>, then <ls>"
 echo "To start,stop,enable/disable on boot, or restart the monitoring service, run <sudo systemctl (start/stop/enable/disable/restart) terrarium-monitor>"
 echo "If your Pi uses a username other than the default <pi>, you need to change the <User> field in ./rpi-terrarium-controller/terrarium-monitor.service"

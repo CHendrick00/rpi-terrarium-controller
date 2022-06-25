@@ -121,7 +121,8 @@ async def main():
 
         except RuntimeError:
             pass #ignore and retry
-
+        except TimeoutError:
+            pass
         time.sleep(interval)
 
 if __name__ == "__main__":
