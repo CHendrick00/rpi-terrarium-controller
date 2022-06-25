@@ -9,35 +9,37 @@ import adafruit_hcsr04
 from influxdb import InfluxDBClient
 import requests
 from discord_webhook import DiscordWebhook
+import configparser
 
-#ATTN: Set values below
-whurl = 'your-url-here'
-msg = 'your-message-here' #contents of message to be sent
-maxHeight = 6 #distance from empty to full (inches)
-sensorHeight = .75 #distance from sensor to max water level (inches)
-trigger_pin=board.D17 #set pin numbers as needed
-echo_pin=board.D27
+config = configparser.ConfigParser()
+config.read('config.ini')
+config = config['HCSR04-Humidifier']
+
+# Custom Values Below
+whurl = config['WebhookURL']
+maxHeight = int(config['MaxHeight'])
+sensorHeight = float(config['SensorHeight'])
+trigger_pin=eval('board.D' + config['TriggerPin'])
+echo_pin=eval('board.D' + config['EchoPin'])
 
 #InfluxDB Client Settings
-host = "127.0.0.1" # Influxdb Server Address; do not change if InfluxDB is running on the same device
-port = 8086 # Default port; SHOULD NOT NEED CHANGED
-user = "your-username-here" # InfluxDB user/pass for pi
-password = "your-password-here"
-dbname = "sensor_data" # database created for this device
-measurement = "rpi-humidifier" # unique table name for data from this sensor
-location = "Terrarium"
+host = config['IP']
+port = config['Port']
+user = config['User']
+password = config['Password']
+dbname = config['DatabaseName']
+location = config['Location']
+measurement = config['DatatypeName']
 
-#below values can be left as default
-interval = 2 #time between full readings (minutes)
-sample = 30 #number of readings to average for reported value; Lower values are MUCH less accurate
-refillLevel = 20 #level at which to recieve refill alert (percent %); Can be left as default
-filledThreshold = 75 #level at which tank is considered refilled (percent %); Can be left as default
-numNotif = 3 #how many notifications you recieve each time humidifier falls below refill level
-timeBetween = 120 #time between sending another notification (minutes) (may not be exact if not a multiple of <interval>)
-#END custom values
+interval = int(config['ReadingInterval'])
+sample = int(config['Samples'])
+refillLevel = int(config['RefillLevel'])
+filledThreshold = int(config['FilledLevel'])
+numNotif = int(config['MaxNotifications'])
+timeBetween = int(config['NotificationInterval'])
 
 
-#Finish initializing values
+# Initialize values
 distances = [] #empty array to store <sample> number of readings
 i = 0 #initialize counter to 0 values in array
 sum = 0 #initialize sum

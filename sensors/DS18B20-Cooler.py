@@ -7,36 +7,34 @@ import requests
 from discord_webhook import DiscordWebhook
 import asyncio
 from kasa import SmartPlug
+import configparser
 
-#ATTN: Set custom user values below
-whurl = 'your-url-here' # Discord alery webhook url
-kasa_ip = '127.0.0.1' # IP address of smart plug
-cooling_alert_time = 30 # Max amount of time (minutes) before alert sent if not hitting target temperature (off_temp). Set to -1 to disable.
-interval = 60 # Time between readings (seconds)
-off_temp = 40 # Temp (F) to turn Kasa plug off - reservoir target temperature - set to above 32 degrees
-on_temp = 46 # Temp (F) to turn Kasa plug back on - set this a few degrees above off_temp
-temp_alert_below = 35 # Minimum temperature before sending alert (F). Should be set between 32 and off_temp.
-threshold = 5 # Degrees F above <temp_alert_below> when alert counter will be reset
-maxNotif = 99 # How many notifications to receive each time temperature falls below minimum level
-timeBetween = 30 # Time between sending another notification (minutes) (may not be exact)
+config = configparser.ConfigParser()
+config.read('config.ini')
+config = config['DS18B20-Cooler']
+
+# Custom Values Below
+whurl = config['WebhookURL']
+kasa_ip = config['CoolerPlugIP']
+cooling_alert_time = int(config['CoolingAlertTime'])
+interval = int(config['ReadingInterval'])
+off_temp = int(config['OffTemp'])
+on_temp = int(config['OnTemp'])
+temp_alert_below = int(config['AlertBelowTemp'])
+threshold = int(config['AlertResetThreshold'])
+maxNotif = int(config['MaxNotifications'])
+timeBetween = int(config['NotificationInterval'])
 
 #InfluxDB Client Settings
-host = "127.0.0.1" # Influxdb Server Address; do not change if InfluxDB is running on the same device
-port = 8086 # Default port; SHOULD NOT NEED CHANGED
-user = "your-user-here" # InfluxDB user/pass for pi
-password = "your-password-here"
-dbname = "sensor_data" # database created for this device
-measurement = "rpi-DS18B20" # unique table name for data from this sensor
-location = "Terrarium"
-#END custom values
+host = config['IP']
+port = config['Port']
+user = config['User']
+password = config['Password']
+dbname = config['DatabaseName']
+location = config['Location']
+measurement = config['DatatypeName']
 
 client = InfluxDBClient(host, port, user, password, dbname)
-
-#Finish initializing values
-notifSent = 0 #initialize number of notifications sent
-notifBetween = (timeBetween * 60) // interval #number of sensor sampling intervals between notifications
-iter = -1 #initialize for num readings between notifications
-
 
 base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
@@ -63,11 +61,18 @@ def read_temp():
 
 async def kasa_setup():
     plug = SmartPlug(kasa_ip)
-    await p.update()
+    await plug.update()
     return plug
 
 async def main():
-    plug = kasa_setup()
+    #Finish initializing values
+    notifSent = 0 #initialize number of notifications sent
+    notifBetween = (timeBetween * 60) // interval #number of sensor sampling intervals between notifications
+    iter = -1 #initialize for num readings between notifications
+    start_time = 0
+    currTime = datetime.now()
+
+    plug = await kasa_setup()
     while True:
         try:
             iso = datetime.now(timezone.utc)
@@ -88,18 +93,20 @@ async def main():
             ]
             client.write_points(data)
 
-            # Send alert if reservoir was unable to be cooled to target temperature within <cooling_alert_time>
-            # Only sent once each time process is started
-            if cooling_alert_time != -1 and (time.time() - start_time) >= (cooling_alert_time * 60):
-                webhook = DiscordWebhook(url=whurl, content="Cooling reservoir was unable to hit target temperature within " + max_runtime + " minutes. Temperature reached: %0.1f%%" % tempF")
-                response = webhook.execute()
+            if config.getboolean('Cooling'):
+                # Send alert if reservoir was unable to be cooled to target temperature within <cooling_alert_time>
+                # Only sent once each time process is started
+                if cooling_alert_time != -1 and (time.time() - start_time) >= (cooling_alert_time * 60) and start_time is not 0:
+                    webhook = DiscordWebhook(url=whurl, content="Cooling reservoir was unable to hit target temperature within " + max_runtime + " minutes. Temperature reached: %0.1f%%" % tempF)
+                    response = webhook.execute()
 
-            if tempF <= off_temp:
-                start_time = 0
-                plug.turn_off()
-            else if tempF >= on_temp:
-                start_time = time.time()
-                plug.turn_on()
+                if (currTime.hour < light_on_time or currTime.hour >= light_off_time) or config.getboolean('DayCooling'):
+                    if tempF <= off_temp:
+                        start_time = 0
+                        await plug.turn_off()
+                    elif tempF >= on_temp:
+                        start_time = time.time()
+                        await plug.turn_on()
 
             if tempF > (temp_alert_below + threshold):
                 notifSent = 0
