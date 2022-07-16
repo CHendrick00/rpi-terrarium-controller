@@ -1,5 +1,6 @@
 import time
 from datetime import datetime,timezone
+import sys
 import board
 from adafruit_htu31d import HTU31D
 from influxdb import InfluxDBClient
@@ -17,6 +18,7 @@ i2c = board.I2C()
 sensor = HTU31D(i2c)
 sensor.temp_resolution = "0.040"
 sensor.humidity_resolution = "0.020%"
+sensor.heater = False
 
 # Custom Values Below
 whurl = config['WebhookURL']
@@ -27,14 +29,17 @@ Hthreshold = int(config['AlertHumidityThreshold'])
 temp_alert_min = int(config['AlertMinTemp'])
 temp_alert_max = int(config['AlertMaxTemp'])
 Tthreshold = int(config['AlertTempThreshold'])
-maxNotif = int(config['MaxNotifications'])
-timeBetween = int(config['NotificationInterval'])
+maxNotifH = int(config['MaxNotificationsHumidity'])
+timeBetweenH = int(config['NotificationIntervalHumidity'])
+maxNotifT = int(config['MaxNotificationsTemp'])
+timeBetweenT = int(config['NotificationIntervalTemp'])
 
 light_on_time = int(config['LightsOnTime'])
 light_off_time = int(config['LightsOffTime'])
 day_target_temp = int(config['DayTargetTemp'])
 night_target_temp = int(config['NightTargetTemp'])
 target_threshold = int(config['TargetTempThreshold'])
+cooling_offset = int(config['CoolingTimeOffset'])
 
 #InfluxDB Client Settings
 host = config['IP']
@@ -47,22 +52,60 @@ measurement = config['DatatypeName']
 
 client = InfluxDBClient(host, port, user, password, dbname)
 
+plugError = False
+
 async def kasa_setup():
-    plug = SmartPlug(kasa_ip)
-    await plug.update()
-    return plug
+    global plugError
+    global plug
+    try:
+        plug = SmartPlug(kasa_ip)
+        await plug.update()
+        if plugError is True:
+            webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling Pump plug reconnected.")
+            plugError = False
+        return plug
+    except:
+        if plugError is False:
+            webhook = DiscordWebhook(url=whurl, content="ATTN: Unable to connect to Cooling Pump plug.")
+            response = webhook.execute()
+            plugError = True
+
+async def toggle_plug(str):
+    global plugError
+    global plug
+    try:
+        if str == "on" or str == "On" or str == "ON":
+            await plug.turn_on()
+        elif str == "off" or str == "Off" or str == "OFF":
+            await plug.turn_off()
+        else:
+            print("Error: Invalid state")
+        if plugError is True:
+            webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling Pump plug reconnected.")
+            plugError = False
+    except:
+        if plugError is False:
+            webhook = DiscordWebhook(url=whurl, content="ATTN: Unable to connect to Cooling Pump plug.") #Message can be changed if desired
+            response = webhook.execute()
+            plugError = True
 
 async def main():
     #Finish initializing values
     HnotifSent = 0 #initialize number of notifications sent
     TnotifSent = 0 #initialize number of notifications sent
-    notifBetween = (timeBetween * 60) // interval
+    notifBetweenH = (timeBetweenH * 60) // interval
+    notifBetweenT = (timeBetweenT * 60) // interval
     Hiter = -1 #initialize for num readings between notifications
     Titer = -1 #initialize for num readings between notifications
+    global plugError
+
 
     plug = await kasa_setup()
+
     while True:
         try:
+            if plugError is True:
+                plug = await kasa_setup()
             currTime = datetime.now()
             iso = datetime.now(timezone.utc)
             tempF = (1.8 * sensor.temperature) + 32
@@ -84,7 +127,11 @@ async def main():
                   }
               }
             ]
-            client.write_points(data)
+            try:
+                client.write_points(data)
+            except:
+                print("InfluxDB timed out")
+                pass
 
             if humidity > 85: # Reduce condensation in high humidity environments
                 sensor.heater = True
@@ -93,10 +140,10 @@ async def main():
                 HnotifSent = 0
                 Hiter = -1
 
-            if humidity < humidity_alert_min and HnotifSent < maxNotif:
+            if humidity < humidity_alert_min and HnotifSent < maxNotifH:
                 Hiter += 1
-                if (Hiter % notifBetween) == 0:
-                    webhook = DiscordWebhook(url=whurl, content="ATTN: Humidity has fallen to %0.1f%%" % humidity) #Message can be changed if desired
+                if (Hiter % notifBetweenH) == 0:
+                    webhook = DiscordWebhook(url=whurl, content="ATTN: Highland humidity has fallen to %0.1f%%" % humidity) #Message can be changed if desired
                     response = webhook.execute()
                     HnotifSent += 1
 
@@ -104,29 +151,43 @@ async def main():
                 TnotifSent = 0
                 Titer = -1
 
-            if tempF < temp_alert_min or tempF > temp_alert_max and TnotifSent < maxNotif:
+            if (tempF < temp_alert_min or tempF > temp_alert_max) and TnotifSent < maxNotifT:
                 Titer += 1
-                if (Titer % notifBetween) == 0:
-                    webhook = DiscordWebhook(url=whurl, content="ATTN: Temperature has reached %0.1f%%" % tempF) #Message can be changed if desired
+                if (Titer % notifBetweenT) == 0:
+                    webhook = DiscordWebhook(url=whurl, content="ATTN: Highland temperature has reached %0.1fF" % tempF) #Message can be changed if desired
                     response = webhook.execute()
-                    notifSent += 1
+                    TnotifSent += 1
 
-            if config.getboolean('Cooling'):
-                if currTime.hour >= light_on_time and currTime.hour < light_off_time:
+
+            if config.getboolean('Cooling') == True:
+                if currTime.hour >= light_on_time and currTime.hour < light_off_time and config.getboolean('DayCooling') == True:
                     if tempF > day_target_temp + target_threshold:
-                        await plug.turn_on()
+                        await toggle_plug("on")
                     elif tempF <= day_target_temp:
-                        await plug.turn_off()
+                        await toggle_plug("off")
 
-                elif currTime.hour < light_on_time or currTime.hour >= light_off_time:
+                elif currTime.hour >= light_on_time-cooling_offset and currTime.hour < light_off_time+cooling_offset and config.getboolean('DayCooling') == False and plug.is_on:
+                    await toggle_plug("off")
+
+                elif currTime.hour < light_on_time-cooling_offset or currTime.hour >= light_off_time+cooling_offset:
                     if tempF > night_target_temp + target_threshold:
-                        await plug.turn_on()
+                        await toggle_plug("on")
                     elif tempF <= night_target_temp:
-                        await plug.turn_off()
-
+                        await toggle_plug("off")
 
         except RuntimeError:
             pass #ignore and retry
+        except TimeoutError:
+            print("Timed out")
+            pass
+        except:
+            try:
+                await plug.turn_off()
+            except:
+                webhook = DiscordWebhook(url=whurl, content="ATTN: Could not reconnect to plug. Service stopped without ensuring plug turned off.") #Message can be changed if desired
+                response = webhook.execute()
+            sys.exit(1)
+
 
         if sensor.heater:
             time.sleep(5)
