@@ -66,6 +66,8 @@ if [ ! -f "/etc/systemd/system/terrarium-monitor.target" ] && [ -d ~/rpi-terrari
   find /etc/systemd/system/ -name "terrarium-*.service" -exec sudo systemctl enable {} \;
   sudo systemctl start terrarium-monitor.target
 
+  sudo loginctl enable-linger $USER
+
 elif [ -f "/etc/systemd/system/terrarium-monitor.target" ]; then
   echo "All installation steps have been run previously. If you wish to reinstall, please run the uninstall script first."
 
