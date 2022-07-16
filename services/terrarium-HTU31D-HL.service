@@ -7,7 +7,7 @@ PartOf=terrarium-monitor.target
 User=pi
 WorkingDirectory=/var/lib/rpi-terrarium-controller/sensors
 Type=simple
-ExecStart=/usr/bin/python ./HTU31D-HL.py
+ExecStart=/usr/bin/python3 -u ./HTU31D-HL.py
 Restart=always
 RestartSec=5s
 

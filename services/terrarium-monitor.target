@@ -2,3 +2,6 @@
 Description=Terrarium Monitoring System
 Requires=multi-user.target
 After=multi-user.target
+
+[Install]
+WantedBy=multi-user.target

@@ -6,10 +6,11 @@ PartOf=terrarium-monitor.target
 [Service]
 User=pi
 WorkingDirectory=/var/lib/rpi-terrarium-controller/sensors
-Type=simple
-ExecStart=/usr/bin/python ./HCSR04-Humidifier.py
+Type=exec
+ExecStart=/usr/bin/python3 -u ./HCSR04-Humidifier.py
+#ExecStopPost=/bin/bash /var/lib/rpi-terrarium-controller/misc/hcsrExit.sh
 Restart=always
-RestartSec=5s
+RestartSec=15
 
 [Install]
 WantedBy=multi-user.target
