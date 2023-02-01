@@ -50,6 +50,7 @@ def main():
     notifBetweenT = (timeBetweenT * 60) // interval
     Hiter = -1 #initialize for num readings between notifications
     Titer = -1 #initialize for num readings between notifications
+    ErrIter = 0 #initialize for num missing sensors errors
 
     while True:
         try:
@@ -60,6 +61,7 @@ def main():
 
             print("\nTemperature: %0.1f F" % tempF)
             print("Humidity: %0.1f %%" % humidity)
+            errIter = 0 #clear missing device error counter on successful read
 
             data = [
             {
@@ -112,6 +114,12 @@ def main():
 
         except RuntimeError:
             pass #ignore and retry
+        except OSError as error:
+            ErrIter += 1
+            if ErrIter >= 5:
+                exit(error)
+            else:
+                pass
 
         if sensor.heater == True:
             time.sleep(5)

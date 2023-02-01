@@ -4,6 +4,7 @@ import subprocess
 import sys
 import signal
 from contextlib import contextmanager
+import logging
 import board
 import adafruit_hcsr04
 from influxdb import InfluxDBClient
@@ -38,8 +39,7 @@ filledThreshold = int(config['FilledLevel'])
 numNotif = int(config['MaxNotifications'])
 timeBetween = int(config['NotificationInterval'])
 
-
-# Initialize values
+#Finish initializing values
 distances = [] #empty array to store <sample> number of readings
 i = 0 #initialize counter to 0 values in array
 sum = 0 #initialize sum
@@ -122,19 +122,21 @@ while True:
                       }
                   }
                 ]
-                client.write_points(data)
+                try:
+                    client.write_points(data)
+                    #allow notifications again once refilled
+                    if currLevel > filledThreshold:
+                        notifSent = 0
+                        iter = -1
 
-                #allow notifications again once refilled
-                if currLevel > filledThreshold:
-                    notifSent = 0
-                    iter = -1
-
-                if currLevel < refillLevel and notifSent < numNotif:
-                    iter += 1
-                    if (iter % notifBetween) == 0:
-                        webhook = DiscordWebhook(url=whurl, content="ATTN: Humidifier level is currently at %0.1f%%. Please refill soon." % currLevelPercent) #Message can be changed if desired
-                        response = webhook.execute()
-                        notifSent += 1
+                    if currLevel < refillLevel and notifSent < numNotif:
+                        iter += 1
+                        if (iter % notifBetween) == 0:
+                            webhook = DiscordWebhook(url=whurl, content="ATTN: Humidifier level is currently at %0.1f%%. Please refill soon." % currLevelPercent) #Message can be changed if desired
+                            response = webhook.execute()
+                            notifSent += 1
+                except:
+                    pass
 
                 #reset values
                 distances = []
@@ -151,6 +153,7 @@ while True:
             if "Timed out" in e:
                 pass #ignore and retry
             else:
+                logging.debug('Error: %s', e)
                 print("Killing faulty libgpiod process")
                 subprocess.run(["pkill", "-f", "libgpiod_pulsein"]) #kill active libgpiod process
                 sys.exit(1)
