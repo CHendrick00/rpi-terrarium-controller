@@ -131,8 +131,8 @@ async def main():
                 print("InfluxDB timed out")
                 pass
 
-            if humidity > 85: # Reduce condensation in high humidity environments
-                sensor.mode = adafruit_sht4x.Mode.HIGHHEAT_1S
+            # if humidity > 85: # Reduce condensation in high humidity environments
+            #     sensor.mode = adafruit_sht4x.Mode.LOWHEAT_100MS
 
             if humidity > (humidity_alert_min + Hthreshold):
                 HnotifSent = 0
