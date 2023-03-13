@@ -43,6 +43,9 @@ if [ ! -f "/etc/systemd/system/terrarium-monitor.target" ] && [ -d ~/rpi-terrari
   if [ ! -f /usr/local/lib/python3.7/dist-packages/adafruit_htu31d.py ]; then
     sudo pip3 install adafruit-circuitpython-htu31d
   fi
+  if [ ! -f /usr/local/lib/python3.7/dist-packages/adafruit_htu31d.py ]; then
+    sudo pip3 install adafruit-circuitpython-sht4x
+  fi
   if [ ! -d /usr/local/lib/python3.7/dist-packages/discord_webhook ]; then
     sudo pip3 install discord-webhook
   fi
