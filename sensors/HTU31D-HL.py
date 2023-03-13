@@ -12,7 +12,7 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-config = config['HTU31D-HL']
+config = config['Highland']
 
 i2c = board.I2C()
 sensor = HTU31D(i2c)
