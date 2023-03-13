@@ -13,7 +13,7 @@ config.read('config.ini')
 config = config['Lowland']
 
 i2c = I2C(2)
-sensor = SHT4x(i2c)
+sensor = adafruit_sht4x.SHT4x(i2c)
 sensor.mode = adafruit_sht4x.Mode.NOHEAT_HIGHPRECISION
 
 # Custom Values Below

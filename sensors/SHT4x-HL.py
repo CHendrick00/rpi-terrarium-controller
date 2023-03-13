@@ -2,7 +2,7 @@ import time
 from datetime import datetime,timezone
 import sys
 import board
-from adafruit_sht4x import SHT4x
+import adafruit_sht4x
 from influxdb import InfluxDBClient
 import requests
 from discord_webhook import DiscordWebhook
@@ -15,7 +15,7 @@ config.read('config.ini')
 config = config['Highland']
 
 i2c = board.I2C()
-sensor = SHT4x(i2c)
+sensor = adafruit_sht4x.SHT4x(i2c)
 sensor.mode = adafruit_sht4x.Mode.NOHEAT_HIGHPRECISION
 
 # Custom Values Below
