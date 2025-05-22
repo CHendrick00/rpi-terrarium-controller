@@ -87,8 +87,10 @@ async def toggle_plug(str):
     global plug
     try:
         if str == "on" or str == "On" or str == "ON":
+            print("Enabling cooling system")
             await plug.turn_on()
         elif str == "off" or str == "Off" or str == "OFF":
+            print("Disabling cooling system")
             await plug.turn_off()
         else:
             print("Error: Invalid state")
@@ -141,19 +143,19 @@ async def main():
             if config.getboolean('Cooling'):
                 # Send alert if reservoir was unable to be cooled to target temperature within <cooling_alert_time>
                 # Only sent once each time process is started
-                if cooling_alert_time != -1 and (time.time() - start_time) >= (cooling_alert_time * 60) and start_time is not 0:
-                    webhook = DiscordWebhook(url=whurl, content="Cooling reservoir was unable to hit target temperature within " + max_runtime + " minutes. Temperature reached: %0.1f%%" % tempF)
+                if cooling_alert_time != -1 and (time.time() - start_time) >= (cooling_alert_time * 60) and start_time != 0:
+                    webhook = DiscordWebhook(url=whurl, content="Cooling reservoir was unable to hit target temperature within " + cooling_alert_time + " minutes. Temperature reached: %0.1f%%" % tempF)
                     response = webhook.execute()
 
-                if currTime.hour < light_on_time-1 or currTime.hour >= light_off_time+1:
-                    if tempF <= off_temp:
+                if (currTime.hour < light_on_time-1 or currTime.hour >= light_off_time+1) or config.getboolean('DayCooling'):
+                    if tempF <= off_temp and plug.is_on:
                         await toggle_plug("off")
                         start_time = 0
-                    elif tempF >= on_temp:
+                    elif tempF >= on_temp and not plug.is_on:
                         await toggle_plug("on")
                         start_time = time.time()
 
-                elif currTime.hour >= light_on_time-1 and currTime.hour < light_off_time+1 and plug.is_on:
+                elif ((currTime.hour >= light_on_time-1 and currTime.hour < light_off_time+1) and not config.getboolean('DayCooling')) and plug.is_on:
                     await toggle_plug("off")
 
             if tempF > (temp_alert_below + threshold):
