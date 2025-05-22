@@ -14,7 +14,7 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-config = config['HCSR04-Humidifier']
+config = config['Humidifier']
 
 # Custom Values Below
 whurl = config['WebhookURL']

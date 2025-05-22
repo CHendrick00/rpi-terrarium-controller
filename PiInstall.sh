@@ -37,19 +37,31 @@ if [ ! -f "/etc/systemd/system/terrarium-monitor.target" ] && [ -d ~/rpi-terrari
   if [ ! -d /usr/share/doc/libgpiod2 ]; then
     sudo apt install libgpiod2 -y
   fi
-  if [ ! -f /usr/local/lib/python3.7/dist-packages/adafruit_hcsr04.py ]; then
+  if [ ! -d /usr/local/lib/python3.11/dist-packages/adafruit_extended_bus* ]; then
+    sudo pip3 install adafruit-extended-bus
+  fi
+  if [ ! -d /usr/local/lib/python3.11/dist-packages/python_kasa* ]; then
+    sudo pip3 install python-kasa
+  fi
+  if [ ! -f /usr/local/lib/python3.11/dist-packages/adafruit_hcsr04.py ]; then
     sudo pip3 install adafruit-circuitpython-hcsr04
   fi
-  if [ ! -f /usr/local/lib/python3.7/dist-packages/adafruit_htu31d.py ]; then
+  if [ ! -f /usr/local/lib/python3.11/dist-packages/adafruit_htu31d.py ]; then
     sudo pip3 install adafruit-circuitpython-htu31d
   fi
-  if [ ! -f /usr/local/lib/python3.7/dist-packages/adafruit_htu31d.py ]; then
+  if [ ! -f /usr/local/lib/python3.11/dist-packages/adafruit_sht4x.py ]; then
     sudo pip3 install adafruit-circuitpython-sht4x
   fi
-  if [ ! -d /usr/local/lib/python3.7/dist-packages/discord_webhook ]; then
+  if [ ! -f /usr/local/lib/python3.11/dist-packages/adafruit_hdc302x.py ]; then
+    sudo pip3 install adafruit-circuitpython-hdc302x
+  fi
+  if [ ! -f /usr/local/lib/python3.11/dist-packages/adafruit_vl53l4cd.py ]; then
+    sudo pip3 install adafruit-circuitpython-vl53l4cd
+  fi
+  if [ ! -d /usr/local/lib/python3.11/dist-packages/discord_webhook ]; then
     sudo pip3 install discord-webhook
   fi
-  if [ ! -d /usr/local/lib/python3.7/dist-packages/influxdb ]; then
+  if [ ! -d /usr/local/lib/python3.11/dist-packages/influxdb ]; then
     sudo pip3 install influxdb
   fi
 

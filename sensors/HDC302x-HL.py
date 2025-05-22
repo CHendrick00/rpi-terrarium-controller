@@ -1,8 +1,8 @@
-import os
-import glob
 import time
-import sys
 from datetime import datetime,timezone
+import sys
+import board
+from adafruit_hdc302x import HDC302x
 from influxdb import InfluxDBClient
 import requests
 from discord_webhook import DiscordWebhook
@@ -12,21 +12,30 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-config = config['Cooler']
+config = config['Highland']
+
+i2c = board.I2C()
+sensor = HDC302x(i2c)
 
 # Custom Values Below
 whurl = config['WebhookURL']
-kasa_ip = config['CoolerPlugIP']
-cooling_alert_time = int(config['CoolingAlertTime'])
+kasa_ip = config['CoolingPumpIP']
 interval = int(config['ReadingInterval'])
-off_temp = int(config['OffTemp'])
-on_temp = int(config['OnTemp'])
-temp_alert_below = int(config['AlertBelowTemp'])
-threshold = int(config['AlertResetThreshold'])
-maxNotif = int(config['MaxNotifications'])
-timeBetween = int(config['NotificationInterval'])
+humidity_alert_min = int(config['MinHumidityAlert'])
+Hthreshold = int(config['AlertHumidityThreshold'])
+temp_alert_min = int(config['AlertMinTemp'])
+temp_alert_max = int(config['AlertMaxTemp'])
+Tthreshold = int(config['AlertTempThreshold'])
+maxNotifH = int(config['MaxNotificationsHumidity'])
+timeBetweenH = int(config['NotificationIntervalHumidity'])
+maxNotifT = int(config['MaxNotificationsTemp'])
+timeBetweenT = int(config['NotificationIntervalTemp'])
+
 light_on_time = int(config['LightsOnTime'])
 light_off_time = int(config['LightsOffTime'])
+day_target_temp = int(config['DayTargetTemp'])
+night_target_temp = int(config['NightTargetTemp'])
+target_threshold = int(config['TargetTempThreshold'])
 cooling_offset = int(config['CoolingTimeOffset'])
 
 #InfluxDB Client Settings
@@ -40,30 +49,7 @@ measurement = config['DatatypeName']
 
 client = InfluxDBClient(host, port, user, password, dbname)
 
-base_dir = '/sys/bus/w1/devices/'
-device_folder = glob.glob(base_dir + '28*')[0]
-device_file = device_folder + '/w1_slave'
-
 plugError = False
-
-def read_temp_raw():
-    f = open(device_file, 'r')
-    lines = f.readlines()
-    f.close()
-    #subprocess.call(['sudo', 'rm', device_file])
-    return lines
-
-def read_temp():
-    lines = read_temp_raw()
-    while lines[0].strip()[-3:] != 'YES':
-        time.sleep(0.2)
-        lines = read_temp_raw()
-    equals_pos = lines[1].find('t=')
-    if equals_pos != -1:
-        temp_string = lines[1][equals_pos+2:]
-        temp_c = float(temp_string) / 1000.0
-        temp_f = temp_c * 9.0 / 5.0 + 32.0
-        return temp_c, temp_f
 
 async def kasa_setup():
     global plugError
@@ -71,7 +57,6 @@ async def kasa_setup():
     try:
         plug = SmartPlug(kasa_ip)
         await plug.update()
-        plugError = False
         if plugError is True:
             webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling Pump plug reconnected.")
             plugError = False
@@ -103,11 +88,14 @@ async def toggle_plug(str):
 
 async def main():
     #Finish initializing values
-    notifSent = 0 #initialize number of notifications sent
-    notifBetween = (timeBetween * 60) // interval #number of sensor sampling intervals between notifications
-    iter = -1 #initialize for num readings between notifications
-    start_time = 0
+    HnotifSent = 0 #initialize number of notifications sent
+    TnotifSent = 0 #initialize number of notifications sent
+    notifBetweenH = (timeBetweenH * 60) // interval
+    notifBetweenT = (timeBetweenT * 60) // interval
+    Hiter = -1 #initialize for num readings between notifications
+    Titer = -1 #initialize for num readings between notifications
     global plugError
+
 
     plug = await kasa_setup()
 
@@ -115,10 +103,13 @@ async def main():
         try:
             if plugError is True:
                 plug = await kasa_setup()
-            iso = datetime.now(timezone.utc)
             currTime = datetime.now()
-            tempC, tempF = read_temp()
+            iso = datetime.now(timezone.utc)
+            tempF = (1.8 * sensor.temperature) + 32
+            humidity = sensor.relative_humidity
+
             print("\nTemperature: %0.1f F" % tempF)
+            print("Humidity: %0.1f %%" % humidity)
 
             data = [
             {
@@ -129,6 +120,7 @@ async def main():
                   "time": iso,
                   "fields": {
                       "temperature" : tempF,
+                      "humidity": humidity
                   }
               }
             ]
@@ -138,42 +130,51 @@ async def main():
                 print("InfluxDB timed out")
                 pass
 
-            if config.getboolean('Cooling'):
-                # Send alert if reservoir was unable to be cooled to target temperature within <cooling_alert_time>
-                # Only sent once each time process is started
-                if cooling_alert_time != -1 and (time.time() - start_time) >= (cooling_alert_time * 60) and start_time is not 0:
-                    webhook = DiscordWebhook(url=whurl, content="Cooling reservoir was unable to hit target temperature within " + max_runtime + " minutes. Temperature reached: %0.1f%%" % tempF)
+            if humidity > (humidity_alert_min + Hthreshold):
+                HnotifSent = 0
+                Hiter = -1
+
+            if humidity < humidity_alert_min and HnotifSent < maxNotifH:
+                Hiter += 1
+                if (Hiter % notifBetweenH) == 0:
+                    webhook = DiscordWebhook(url=whurl, content="ATTN: Highland humidity has fallen to %0.1f%%" % humidity) #Message can be changed if desired
                     response = webhook.execute()
+                    HnotifSent += 1
 
-                if currTime.hour < light_on_time-1 or currTime.hour >= light_off_time+1:
-                    if tempF <= off_temp:
-                        await toggle_plug("off")
-                        start_time = 0
-                    elif tempF >= on_temp:
+            if tempF < (temp_alert_max - Tthreshold) and tempF > (temp_alert_min + Tthreshold):
+                TnotifSent = 0
+                Titer = -1
+
+            if (tempF < temp_alert_min or tempF > temp_alert_max) and TnotifSent < maxNotifT:
+                Titer += 1
+                if (Titer % notifBetweenT) == 0:
+                    webhook = DiscordWebhook(url=whurl, content="ATTN: Highland temperature has reached %0.1fF" % tempF) #Message can be changed if desired
+                    response = webhook.execute()
+                    TnotifSent += 1
+
+
+            if config.getboolean('Cooling') == True:
+                if currTime.hour >= light_on_time and currTime.hour < light_off_time and config.getboolean('DayCooling') == True:
+                    if tempF > day_target_temp + target_threshold:
                         await toggle_plug("on")
-                        start_time = time.time()
+                    elif tempF <= day_target_temp:
+                        await toggle_plug("off")
 
-                elif currTime.hour >= light_on_time-1 and currTime.hour < light_off_time+1 and plug.is_on:
+                elif currTime.hour >= light_on_time-cooling_offset and currTime.hour < light_off_time+cooling_offset and config.getboolean('DayCooling') == False and plug.is_on:
                     await toggle_plug("off")
 
-            if tempF > (temp_alert_below + threshold):
-                notifSent = 0
-                iter = -1
-
-            if tempF < temp_alert_below and notifSent < maxNotif:
-                iter += 1
-                if (iter % notifBetween) == 0:
-                    webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling reservoir temperature has fallen to %0.1fF" % tempF) #Message can be changed if desired
-                    response = webhook.execute()
-                    notifSent += 1
+                elif currTime.hour < light_on_time-cooling_offset or currTime.hour >= light_off_time+cooling_offset:
+                    if tempF > night_target_temp + target_threshold:
+                        await toggle_plug("on")
+                    elif tempF <= night_target_temp:
+                        await toggle_plug("off")
 
         except RuntimeError:
             pass #ignore and retry
         except TimeoutError:
             print("Timed out")
             pass
-        except Exception as e:
-            print(e)
+        except:
             try:
                 await plug.turn_off()
             except:
