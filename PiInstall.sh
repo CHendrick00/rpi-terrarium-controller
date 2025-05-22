@@ -78,8 +78,8 @@ if [ ! -f "/etc/systemd/system/terrarium-monitor.target" ] && [ -d ~/rpi-terrari
   sudo ln -s /var/lib/rpi-terrarium-controller "$(pwd)/rpi-terrarium-controller"
 
   sudo systemctl daemon-reload
-  find /etc/systemd/system/ -name "terrarium-*.service" -exec sudo systemctl enable {} \;
-  sudo systemctl start terrarium-monitor.target
+  # find /etc/systemd/system/ -name "terrarium-*.service" -exec sudo systemctl enable {} \;
+  # sudo systemctl start terrarium-monitor.target
 
   sudo loginctl enable-linger $USER
 
