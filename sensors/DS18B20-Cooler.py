@@ -147,6 +147,7 @@ async def main():
                     webhook = DiscordWebhook(url=whurl, content="Cooling reservoir was unable to hit target temperature within " + cooling_alert_time + " minutes. Temperature reached: %0.1f%%" % tempF)
                     response = webhook.execute()
 
+                # Night
                 if (currTime.hour < light_on_time-1 or currTime.hour >= light_off_time+1) or config.getboolean('DayCooling'):
                     if tempF <= off_temp and plug.is_on:
                         await toggle_plug("off")
@@ -155,7 +156,8 @@ async def main():
                         await toggle_plug("on")
                         start_time = time.time()
 
-                elif ((currTime.hour >= light_on_time-1 and currTime.hour < light_off_time+1) and not config.getboolean('DayCooling')) and plug.is_on:
+                # Day
+                elif ((currTime.hour >= light_on_time-1 and currTime.hour < light_off_time+1) and config.getboolean('DayCooling')) and plug.is_on:
                     await toggle_plug("off")
 
             if tempF > (temp_alert_below + threshold):

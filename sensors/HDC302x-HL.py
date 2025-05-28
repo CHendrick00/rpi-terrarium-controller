@@ -72,8 +72,10 @@ async def toggle_plug(str):
     global plug
     try:
         if str == "on" or str == "On" or str == "ON":
+            print("Enabling cooling pump")
             await plug.turn_on()
         elif str == "off" or str == "Off" or str == "OFF":
+            print("Disabling cooling pump")
             await plug.turn_off()
         else:
             print("Error: Invalid state")
@@ -153,20 +155,23 @@ async def main():
                     TnotifSent += 1
 
 
-            if config.getboolean('Cooling') == True:
-                if currTime.hour >= light_on_time and currTime.hour < light_off_time and config.getboolean('DayCooling') == True:
-                    if tempF > day_target_temp + target_threshold:
+            if config.getboolean('Cooling'):
+                # Day - enabled
+                if currTime.hour >= light_on_time and currTime.hour < light_off_time and config.getboolean('DayCooling'):
+                    if tempF > day_target_temp + target_threshold and not plug.is_on:
                         await toggle_plug("on")
-                    elif tempF <= day_target_temp:
+                    elif tempF <= day_target_temp and plug.is_on:
                         await toggle_plug("off")
 
-                elif currTime.hour >= light_on_time-cooling_offset and currTime.hour < light_off_time+cooling_offset and config.getboolean('DayCooling') == False and plug.is_on:
+                # Day - disabled
+                elif currTime.hour >= light_on_time-cooling_offset and currTime.hour < light_off_time+cooling_offset and not config.getboolean('DayCooling') and plug.is_on:
                     await toggle_plug("off")
 
+                # Night
                 elif currTime.hour < light_on_time-cooling_offset or currTime.hour >= light_off_time+cooling_offset:
-                    if tempF > night_target_temp + target_threshold:
+                    if tempF > night_target_temp + target_threshold and not plug.is_on:
                         await toggle_plug("on")
-                    elif tempF <= night_target_temp:
+                    elif tempF <= night_target_temp and plug.is_on:
                         await toggle_plug("off")
 
         except RuntimeError:
