@@ -7,7 +7,7 @@ from influxdb import InfluxDBClient
 import requests
 from discord_webhook import DiscordWebhook
 import asyncio
-from kasa import SmartPlug
+from kasa import Discover
 import configparser
 
 config = configparser.ConfigParser()
@@ -55,7 +55,7 @@ async def kasa_setup():
     global plugError
     global plug
     try:
-        plug = SmartPlug(kasa_ip)
+        plug = await Discover.discover_single(kasa_ip)
         await plug.update()
         if plugError is True:
             webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling Pump plug reconnected.")
@@ -82,6 +82,7 @@ async def toggle_plug(str):
         if plugError is True:
             webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling Pump plug reconnected.")
             plugError = False
+        await plug.update()
     except:
         if plugError is False:
             webhook = DiscordWebhook(url=whurl, content="ATTN: Unable to connect to Cooling Pump plug.") #Message can be changed if desired
@@ -156,6 +157,8 @@ async def main():
 
 
             if config.getboolean('Cooling'):
+                await plug.update()
+                
                 # Day - enabled
                 if currTime.hour >= light_on_time and currTime.hour < light_off_time and config.getboolean('DayCooling'):
                     if tempF > day_target_temp + target_threshold and not plug.is_on:

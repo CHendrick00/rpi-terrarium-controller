@@ -7,7 +7,7 @@ from influxdb import InfluxDBClient
 import requests
 from discord_webhook import DiscordWebhook
 import asyncio
-from kasa import SmartPlug
+from Kasa import Discover
 import configparser
 
 config = configparser.ConfigParser()
@@ -69,16 +69,16 @@ async def kasa_setup():
     global plugError
     global plug
     try:
-        plug = SmartPlug(kasa_ip)
+        plug = await Discover.discover_single(kasa_ip)
         await plug.update()
         plugError = False
         if plugError is True:
-            webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling Pump plug reconnected.")
+            webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling System plug reconnected.")
             plugError = False
         return plug
     except:
         if plugError is False:
-            webhook = DiscordWebhook(url=whurl, content="ATTN: Unable to connect to Cooling Pump plug.")
+            webhook = DiscordWebhook(url=whurl, content="ATTN: Unable to connect to Cooling System plug.")
             response = webhook.execute()
             plugError = True
 
@@ -95,11 +95,12 @@ async def toggle_plug(str):
         else:
             print("Error: Invalid state")
         if plugError is True:
-            webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling Pump plug reconnected.")
+            webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling System plug reconnected.")
             plugError = False
+        await plug.update()
     except:
         if plugError is False:
-            webhook = DiscordWebhook(url=whurl, content="ATTN: Unable to connect to Cooling Pump plug.") #Message can be changed if desired
+            webhook = DiscordWebhook(url=whurl, content="ATTN: Unable to connect to Cooling System plug.") #Message can be changed if desired
             response = webhook.execute()
             plugError = True
 
@@ -141,6 +142,8 @@ async def main():
                 pass
 
             if config.getboolean('Cooling'):
+                await plug.update()
+                
                 # Send alert if reservoir was unable to be cooled to target temperature within <cooling_alert_time>
                 # Only sent once each time process is started
                 if cooling_alert_time != -1 and (time.time() - start_time) >= (cooling_alert_time * 60) and start_time != 0:

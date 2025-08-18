@@ -4,7 +4,7 @@ import time
 import sys
 import asyncio
 from discord_webhook import DiscordWebhook
-from kasa import SmartPlug
+from kasa import Discover
 import configparser
 
 config = configparser.ConfigParser()
@@ -22,8 +22,9 @@ plugError = False
 async def kasa_setup(name, ip):
     global plugError
     try:
-        plug = SmartPlug(ip)
+        plug = await Discover.discover_single(ip)
         await plug.update()
+        print("Connected: %s" % plug.alias)
         if plugError is True:
             webhook = DiscordWebhook(url=whurl, content=f"ATTN: {name} plug reconnected.")
             plugError = False
@@ -36,6 +37,7 @@ async def kasa_setup(name, ip):
 
 async def toggle_plug(plug, name, state):
     global plugError
+    await plug.update()
     try:
         if state == "on" or state == "On" or state == "ON" and plug.is_off:
             await plug.turn_on()
@@ -48,6 +50,7 @@ async def toggle_plug(plug, name, state):
         if plugError is True:
             webhook = DiscordWebhook(url=whurl, content=f"ATTN: {name} plug reconnected.")
             plugError = False
+        await plug.update()
     except:
         if plugError is False:
             webhook = DiscordWebhook(url=whurl, content=f"ATTN: Unable to connect to {name} plug.") #Message can be changed if desired
