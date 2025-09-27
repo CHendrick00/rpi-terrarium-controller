@@ -57,6 +57,7 @@ async def kasa_setup():
     try:
         plug = await Discover.discover_single(kasa_ip)
         await plug.update()
+        print("Connected: %s" % plug.alias)
         if plugError is True:
             webhook = DiscordWebhook(url=whurl, content="ATTN: Cooling Pump plug reconnected.")
             plugError = False
@@ -67,14 +68,14 @@ async def kasa_setup():
             response = webhook.execute()
             plugError = True
 
-async def toggle_plug(str):
+async def toggle_plug(state):
     global plugError
     global plug
     try:
-        if str == "on" or str == "On" or str == "ON":
+        if state == "on" or state == "On" or state == "ON":
             print("Enabling cooling pump")
             await plug.turn_on()
-        elif str == "off" or str == "Off" or str == "OFF":
+        elif state == "off" or state == "Off" or state == "OFF":
             print("Disabling cooling pump")
             await plug.turn_off()
         else:
