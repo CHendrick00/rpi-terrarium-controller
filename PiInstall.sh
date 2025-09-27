@@ -31,6 +31,7 @@ if [ ! -f "/etc/systemd/system/terrarium-monitor.target" ] && [ -d ~/rpi-terrari
   cd ~/rpi-terrarium-controller
   python3 blinkatest.py
   sudo rm ./blinkatest.py
+  python3 -m pip config set global.break-system-packages true && sudo rm /usr/lib/python3.11/EXTERNALLY-MANAGED*
   pip3 install --upgrade adafruit_blinka
 
   # install required libraries

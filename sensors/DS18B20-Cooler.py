@@ -7,7 +7,7 @@ from influxdb import InfluxDBClient
 import requests
 from discord_webhook import DiscordWebhook
 import asyncio
-from Kasa import Discover
+from kasa import Discover
 import configparser
 
 config = configparser.ConfigParser()
