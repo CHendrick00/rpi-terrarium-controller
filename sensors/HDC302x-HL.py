@@ -183,12 +183,9 @@ async def main():
         except TimeoutError:
             print("Timed out")
             pass
-        except:
-            try:
-                await plug.turn_off()
-            except:
-                webhook = DiscordWebhook(url=whurl, content="ATTN: Could not reconnect to plug. Service stopped without ensuring plug turned off.") #Message can be changed if desired
-                response = webhook.execute()
+        except Exception as e:
+            print(e)
+            await toggle_plug("off")
             sys.exit(1)
 
         time.sleep(interval)
